@@ -5,7 +5,7 @@ import { useRegisterSW } from 'virtual:pwa-register/react';
 // === 多言語辞書（日・英・ポ） ===
 const textDict = {
   ja: {
-    tabAbout: "解説", tabInput: "入力", tabPassport: "提示",
+    tabAbout: "解説", tabInput: "入力", tabZukan: "ずかん", tabPassport: "提示",
     welcomeTitle: "どんな些細なことでも、大丈夫ですよ。",
     welcomeSub: "あなたは一人ではありません。このアプリは、お子様を評価するものではなく、力を最大限に発揮するための「取扱説明書（パスポート）」です。",
     conceptTitle: "「努力」から「戦略」へ",
@@ -19,10 +19,19 @@ const textDict = {
     saveBtn: "💾 記録を保存する",
     savedAlert: "設定を保存しました！",
     qrHint: "このQRコードを支援者（保育園・学校・保健師さん）に読み取ってもらってください",
-    simpleReport: "📄 提出用シンプル表示"
+    simpleReport: "📄 提出用シンプル表示",
+    // === 図鑑（Zukan）用データ ===
+    zukanTitle: "👑 きみの ぼうけんの しょ 👑",
+    zukanEmpty: "『にゅうりょく』から ひみつの ぱわーを えらんでね！",
+    zukanCategories: { sensor: "まほうの センサー 🪄", battery: "パワーの ひみつ 🔋", communication: "おはなしの まほう 🗣️" },
+    zukanOptions: {
+      sensor: ["🕶️ ひかりの まほうつかい", "🎧 おと キャッチ めいじん", "👕 おはだ センサー", "👃 におい めいたんてい"],
+      battery: ["🔋 げんき じゅうでんき", "⚡ スーパー ダッシュ！", "🛌 おひるね マスター", "🐢 じっくり やさん"],
+      communication: ["🗣️ おしゃべり はかせ", "🤫 ジェスチャー めいじん", "👀 みておぼえる しゃしんか", "🎨 えをかく アーティスト"]
+    }
   },
   en: {
-    tabAbout: "About", tabInput: "Input", tabPassport: "Passport",
+    tabAbout: "About", tabInput: "Input", tabZukan: "Book", tabPassport: "Passport",
     welcomeTitle: "Whatever it is, it's okay.",
     welcomeSub: "You are not alone. This app is not for evaluating your child, but a 'Passport' to help them thrive.",
     conceptTitle: "From 'Effort' to 'Strategy'",
@@ -36,10 +45,18 @@ const textDict = {
     saveBtn: "💾 Save Data",
     savedAlert: "Settings saved!",
     qrHint: "Please have your supporter scan this QR code.",
-    simpleReport: "📄 Simple Report Mode"
+    simpleReport: "📄 Simple Report Mode",
+    zukanTitle: "👑 Your Adventure Book 👑",
+    zukanEmpty: "Select your secret powers in the Input tab!",
+    zukanCategories: { sensor: "Magic Sensors 🪄", battery: "Secret Power 🔋", communication: "Magic Words 🗣️" },
+    zukanOptions: {
+      sensor: ["🕶️ Light Wizard", "🎧 Sound Catcher", "👕 Skin Sensor", "👃 Super Detective"],
+      battery: ["🔋 Energy Charger", "⚡ Super Dasher!", "🛌 Nap Master", "🐢 Slow & Steady"],
+      communication: ["🗣️ Talking Professor", "🤫 Gesture Master", "👀 Photo Memory", "🎨 Art Communicator"]
+    }
   },
   pt: {
-    tabAbout: "Sobre", tabInput: "Entrada", tabPassport: "Passaporte",
+    tabAbout: "Sobre", tabInput: "Entrada", tabZukan: "Livro", tabPassport: "Passaporte",
     welcomeTitle: "Qualquer coisa, está tudo bem.",
     welcomeSub: "Você não está sozinho(a). Este app não avalia seu filho(a), é um 'Passaporte' para ajudá-lo(a) a brilhar.",
     conceptTitle: "Da 'Esforço' à 'Estratégia'",
@@ -53,11 +70,19 @@ const textDict = {
     saveBtn: "💾 Salvar Dados",
     savedAlert: "Configurações salvas!",
     qrHint: "Peça para o professor ou médico escanear este QR code.",
-    simpleReport: "📄 Modo Relatório"
+    simpleReport: "📄 Modo Relatório",
+    zukanTitle: "👑 Seu Livro de Aventuras 👑",
+    zukanEmpty: "Escolha seus poderes secretos na aba Entrada!",
+    zukanCategories: { sensor: "Sensores Mágicos 🪄", battery: "Poder Secreto 🔋", communication: "Palavras Mágicas 🗣️" },
+    zukanOptions: {
+      sensor: ["🕶️ Mago da Luz", "🎧 Caçador de Som", "👕 Sensor de Pele", "👃 Super Detetive"],
+      battery: ["🔋 Carregador de Energia", "⚡ Super Corredor!", "🛌 Mestre da Soneca", "🐢 Devagar e Sempre"],
+      communication: ["🗣️ Professor Falante", "🤫 Mestre dos Gestos", "👀 Memória Fotográfica", "🎨 Artista Comunicador"]
+    }
   }
 };
 
-// === 選択肢データ（ピクトグラム重視） ===
+// === 選択肢データ（大人用・入力用） ===
 const fieldOptions = {
   sensor: {
     icon: "📡", label: { ja: "センサー（感覚）", en: "Sensors (Senses)", pt: "Sensores (Sentidos)" },
@@ -92,13 +117,13 @@ export default function App() {
   const t = textDict[lang];
 
   const [activeTab, setActiveTab] = useState('about');
-  const [simpleMode, setSimpleMode] = useState(false); // 簡易レポートモード
+  const [simpleMode, setSimpleMode] = useState(false);
   const [osData, setOsData] = useState({
     name: '',
     sensor: { tags: [], memo: '' },
     battery: { tags: [], memo: '' },
     communication: { tags: [], memo: '' },
-    stamps: [] // ほめスタンプ記録用
+    stamps: []
   });
 
   const [isRecording, setIsRecording] = useState(false);
@@ -116,7 +141,7 @@ export default function App() {
         setActiveTab('passport');
       } catch (e) { console.error(e); }
     } else {
-      const saved = localStorage.getItem('myOsDataV5');
+      const saved = localStorage.getItem('myOsDataV6');
       if (saved) setOsData(JSON.parse(saved));
     }
 
@@ -140,7 +165,6 @@ export default function App() {
     }
   }, []);
 
-  // 音声入力の言語を動的に変更
   useEffect(() => {
     if (recognitionRef.current) {
       recognitionRef.current.lang = lang === 'ja' ? 'ja-JP' : lang === 'en' ? 'en-US' : 'pt-BR';
@@ -157,14 +181,14 @@ export default function App() {
   };
 
   const handleSave = () => {
-    localStorage.setItem('myOsDataV5', JSON.stringify(osData));
+    localStorage.setItem('myOsDataV6', JSON.stringify(osData));
     alert(t.savedAlert);
   };
 
   const addStamp = (emoji) => {
     const today = new Date().toLocaleDateString();
     setOsData(prev => {
-      const newStamps = [{ date: today, emoji }, ...prev.stamps].slice(0, 10); // 直近10件保存
+      const newStamps = [{ date: today, emoji }, ...prev.stamps].slice(0, 10);
       return { ...prev, stamps: newStamps };
     });
     alert(`${emoji} ${t.stampSaved}`);
@@ -186,7 +210,6 @@ export default function App() {
     return `${window.location.origin}${window.location.pathname}?data=${encoded}`;
   };
 
-  // === 共通スタイル ===
   const containerStyle = {
     maxWidth: '600px', margin: '0 auto', fontFamily: '"Nunito", "M PLUS Rounded 1c", sans-serif', 
     padding: '15px', color: '#333', backgroundColor: simpleMode ? '#fff' : '#F1F8E9', 
@@ -200,7 +223,6 @@ export default function App() {
 
   return (
     <div style={containerStyle}>
-      {/* 言語切り替え＆ヘッダー */}
       {!simpleMode && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
           <h1 style={{ color: '#2E7D32', margin: '0', fontSize: '1.4rem' }}>🧭 My OS Passport</h1>
@@ -218,21 +240,24 @@ export default function App() {
         </div>
       )}
 
-      {/* ナビゲーション */}
+      {/* ナビゲーション（ずかん追加） */}
       {!simpleMode && (
-        <nav style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+        <nav style={{ display: 'flex', gap: '4px', marginBottom: '20px' }}>
           {[
             { id: 'about', label: t.tabAbout, icon: '📖' },
             { id: 'assessment', label: t.tabInput, icon: '🧩' },
+            { id: 'zukan', label: t.tabZukan, icon: '👑' },
             { id: 'passport', label: t.tabPassport, icon: '✨' }
           ].map(({ id, label, icon }) => (
             <button key={id} onClick={() => setActiveTab(id)} style={{
-              flex: 1, padding: '12px 5px', border: 'none', borderRadius: '25px', cursor: 'pointer',
+              flex: 1, padding: '10px 4px', border: 'none', borderRadius: '15px', cursor: 'pointer',
               backgroundColor: activeTab === id ? '#4CAF50' : '#E8F5E9',
-              color: activeTab === id ? 'white' : '#2E7D32', fontWeight: 'bold', fontSize: '0.9rem',
-              boxShadow: activeTab === id ? '0 2px 5px rgba(0,0,0,0.2)' : 'none'
+              color: activeTab === id ? 'white' : '#2E7D32', fontWeight: 'bold', fontSize: '0.85rem',
+              boxShadow: activeTab === id ? '0 2px 5px rgba(0,0,0,0.2)' : 'none',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px'
             }}>
-              {icon} {label}
+              <span style={{ fontSize: '1.2rem' }}>{icon}</span>
+              {label}
             </button>
           ))}
         </nav>
@@ -255,7 +280,6 @@ export default function App() {
       {/* --- 入力タブ --- */}
       {activeTab === 'assessment' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          {/* ほめスタンプ（ペアレントトレーニング要素） */}
           <div style={{ ...cardStyle, backgroundColor: '#FFF3E0', borderColor: '#FFB74D' }}>
             <h3 style={{ margin: '0 0 10px 0', color: '#E65100', fontSize: '1.1rem' }}>{t.parentCare}</h3>
             <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '10px' }}>{t.parentCareText}</p>
@@ -268,11 +292,6 @@ export default function App() {
                 }}>{emoji}</button>
               ))}
             </div>
-            {osData.stamps.length > 0 && (
-              <div style={{ marginTop: '10px', fontSize: '0.8rem', color: '#888', textAlign: 'center' }}>
-                最近のほめ: {osData.stamps.slice(0, 3).map(s => s.emoji).join(' ')}
-              </div>
-            )}
           </div>
 
           <div style={cardStyle}>
@@ -329,6 +348,55 @@ export default function App() {
         </div>
       )}
 
+      {/* --- ずかんタブ（子ども向けポップ表示） --- */}
+      {activeTab === 'zukan' && (
+        <div style={{ backgroundColor: '#FFF9C4', padding: '25px 15px', borderRadius: '20px', border: '4px dashed #FFD54F', textAlign: 'center', boxShadow: '0 8px 16px rgba(0,0,0,0.1)' }}>
+          <h2 style={{ color: '#F57F17', fontSize: '1.4rem', marginBottom: '25px', backgroundColor: '#fff', display: 'inline-block', padding: '10px 20px', borderRadius: '30px', boxShadow: '0 4px 0 #FFE082' }}>
+            {t.zukanTitle}
+          </h2>
+
+          {Object.keys(fieldOptions).every(fieldId => osData[fieldId].tags.length === 0) && (
+            <p style={{ color: '#F57F17', fontWeight: 'bold', fontSize: '1.1rem', marginTop: '20px' }}>{t.zukanEmpty}</p>
+          )}
+
+          {Object.keys(fieldOptions).map(fieldId => {
+            const selectedIndices = osData[fieldId].tags;
+            if (selectedIndices.length === 0) return null;
+
+            return (
+              <div key={fieldId} style={{ marginBottom: '30px' }}>
+                <h3 style={{ color: '#E65100', fontSize: '1.1rem', borderBottom: '3px solid #FFCC80', display: 'inline-block', paddingBottom: '5px', marginBottom: '15px' }}>
+                  {t.zukanCategories[fieldId]}
+                </h3>
+                <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '15px' }}>
+                  {selectedIndices.map(index => {
+                    const zukanText = t.zukanOptions[fieldId][index];
+                    // 絵文字とテキストを分離して表示
+                    const emoji = zukanText.match(/[\p{Emoji}]/gu)?.[0] || '✨';
+                    const textOnly = zukanText.replace(emoji, '').trim();
+
+                    return (
+                      <div key={index} style={{
+                        backgroundColor: '#fff', borderRadius: '16px', padding: '15px 10px',
+                        boxShadow: '0 6px 0 #FFE082', width: '130px',
+                        border: '3px solid #FFECB3', display: 'flex', flexDirection: 'column', alignItems: 'center'
+                      }}>
+                        <div style={{ fontSize: '3.5rem', marginBottom: '10px', filter: 'drop-shadow(0px 4px 2px rgba(0,0,0,0.1))' }}>
+                          {emoji}
+                        </div>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#5D4037', lineHeight: '1.4' }}>
+                          {textOnly}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {/* --- 提示タブ (パスポート) --- */}
       {activeTab === 'passport' && (
         <div style={{ ...cardStyle, padding: simpleMode ? '10px' : '25px', position: 'relative' }}>
@@ -353,7 +421,7 @@ export default function App() {
             const selectedIndices = osData[fieldId].tags;
             const memo = osData[fieldId].memo;
             
-            if (simpleMode && selectedIndices.length === 0 && !memo) return null; // シンプルモードでは空欄を非表示
+            if (simpleMode && selectedIndices.length === 0 && !memo) return null;
 
             return (
               <div key={fieldId} style={{ marginBottom: '20px' }}>
