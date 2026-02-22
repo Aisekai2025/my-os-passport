@@ -21,8 +21,10 @@ const textDict = {
     qrHint: "このQRコードを支援者（保育園・学校・保健師さん）に読み取ってもらってください",
     simpleReport: "📄 提出用シンプル表示",
     // === 図鑑（Zukan）用データ ===
-    zukanTitle: "👑 きみの ぼうけんの しょ 👑",
-    zukanEmpty: "『にゅうりょく』から ひみつの ぱわーを えらんでね！",
+    zukanTitle: "👑 ぼく・わたしの OSずかん 👑",
+    zukanEmpty: "やあ！ワシは ふくろうはかせ じゃ！\n『にゅうりょく』から きみの ひみつのぱわーを おしえておくれ！",
+    zukanGreeting: "おお！きみは こんな『まほう』を もっておるんじゃな！すばらしいぞ！",
+    zukanSparkle: "✨ きょうの キラリ（たからもの） ✨",
     zukanCategories: { sensor: "まほうの センサー 🪄", battery: "パワーの ひみつ 🔋", communication: "おはなしの まほう 🗣️" },
     zukanOptions: {
       sensor: ["🕶️ ひかりの まほうつかい", "🎧 おと キャッチ めいじん", "👕 おはだ センサー", "👃 におい めいたんてい"],
@@ -46,8 +48,10 @@ const textDict = {
     savedAlert: "Settings saved!",
     qrHint: "Please have your supporter scan this QR code.",
     simpleReport: "📄 Simple Report Mode",
-    zukanTitle: "👑 Your Adventure Book 👑",
-    zukanEmpty: "Select your secret powers in the Input tab!",
+    zukanTitle: "👑 My OS Zukan 👑",
+    zukanEmpty: "Hello! I'm Dr. Owl! Tell me your secret powers from the Input tab!",
+    zukanGreeting: "Wow! You have these amazing magic powers!",
+    zukanSparkle: "✨ Today's Sparkle (Treasures) ✨",
     zukanCategories: { sensor: "Magic Sensors 🪄", battery: "Secret Power 🔋", communication: "Magic Words 🗣️" },
     zukanOptions: {
       sensor: ["🕶️ Light Wizard", "🎧 Sound Catcher", "👕 Skin Sensor", "👃 Super Detective"],
@@ -71,8 +75,10 @@ const textDict = {
     savedAlert: "Configurações salvas!",
     qrHint: "Peça para o professor ou médico escanear este QR code.",
     simpleReport: "📄 Modo Relatório",
-    zukanTitle: "👑 Seu Livro de Aventuras 👑",
-    zukanEmpty: "Escolha seus poderes secretos na aba Entrada!",
+    zukanTitle: "👑 Meu OS Zukan 👑",
+    zukanEmpty: "Olá! Sou o Dr. Coruja! Me conte seus poderes na aba de Entrada!",
+    zukanGreeting: "Uau! Você tem esses poderes mágicos incríveis!",
+    zukanSparkle: "✨ Brilho de Hoje (Tesouros) ✨",
     zukanCategories: { sensor: "Sensores Mágicos 🪄", battery: "Poder Secreto 🔋", communication: "Palavras Mágicas 🗣️" },
     zukanOptions: {
       sensor: ["🕶️ Mago da Luz", "🎧 Caçador de Som", "👕 Sensor de Pele", "👃 Super Detetive"],
@@ -82,7 +88,6 @@ const textDict = {
   }
 };
 
-// === 選択肢データ（大人用・入力用） ===
 const fieldOptions = {
   sensor: {
     icon: "📡", label: { ja: "センサー（感覚）", en: "Sensors (Senses)", pt: "Sensores (Sentidos)" },
@@ -108,6 +113,13 @@ const fieldOptions = {
       pt: ["🗣️ Adora falar", "🤫 Usa mais gestos", "👀 Aprende vendo", "🎨 Comunica-se desenhando"]
     }
   }
+};
+
+// ずかん用のテーマカラー定義
+const categoryColors = {
+  sensor: { bg: '#FFF9C4', border: '#FFCA28', text: '#E65100', shadow: '#FFE082' },        // 黄色系
+  battery: { bg: '#E8F5E9', border: '#81C784', text: '#1B5E20', shadow: '#C8E6C9' },       // 緑色系
+  communication: { bg: '#E3F2FD', border: '#64B5F6', text: '#0D47A1', shadow: '#BBDEFB' }  // 青色系
 };
 
 export default function App() {
@@ -141,7 +153,7 @@ export default function App() {
         setActiveTab('passport');
       } catch (e) { console.error(e); }
     } else {
-      const saved = localStorage.getItem('myOsDataV6');
+      const saved = localStorage.getItem('myOsDataV7');
       if (saved) setOsData(JSON.parse(saved));
     }
 
@@ -181,14 +193,14 @@ export default function App() {
   };
 
   const handleSave = () => {
-    localStorage.setItem('myOsDataV6', JSON.stringify(osData));
+    localStorage.setItem('myOsDataV7', JSON.stringify(osData));
     alert(t.savedAlert);
   };
 
   const addStamp = (emoji) => {
     const today = new Date().toLocaleDateString();
     setOsData(prev => {
-      const newStamps = [{ date: today, emoji }, ...prev.stamps].slice(0, 10);
+      const newStamps = [{ date: today, emoji, id: Date.now() }, ...prev.stamps].slice(0, 15);
       return { ...prev, stamps: newStamps };
     });
     alert(`${emoji} ${t.stampSaved}`);
@@ -221,8 +233,25 @@ export default function App() {
     border: simpleMode ? '1px solid #ccc' : '2px solid #A5D6A7', marginBottom: '15px', boxSizing: 'border-box'
   };
 
+  const isZukanEmpty = Object.keys(fieldOptions).every(fieldId => osData[fieldId].tags.length === 0);
+
   return (
     <div style={containerStyle}>
+      {/* 🌟 CSSアニメーションの注入 */}
+      <style>{`
+        @keyframes float {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+          100% { transform: translateY(0px); }
+        }
+        @keyframes sparkleScale {
+          0% { transform: scale(1); filter: brightness(1); }
+          50% { transform: scale(1.15) rotate(5deg); filter: brightness(1.2); }
+          100% { transform: scale(1); filter: brightness(1); }
+        }
+      `}</style>
+
+      {/* ヘッダー・ナビゲーション部分（省略せずにそのまま） */}
       {!simpleMode && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
           <h1 style={{ color: '#2E7D32', margin: '0', fontSize: '1.4rem' }}>🧭 My OS Passport</h1>
@@ -240,7 +269,6 @@ export default function App() {
         </div>
       )}
 
-      {/* ナビゲーション（ずかん追加） */}
       {!simpleMode && (
         <nav style={{ display: 'flex', gap: '4px', marginBottom: '20px' }}>
           {[
@@ -263,7 +291,7 @@ export default function App() {
         </nav>
       )}
 
-      {/* --- 解説タブ --- */}
+      {/* --- 解説・入力タブ（既存コード同様） --- */}
       {activeTab === 'about' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
           <div style={{ ...cardStyle, borderLeft: '6px solid #4CAF50', backgroundColor: '#E8F5E9' }}>
@@ -277,7 +305,6 @@ export default function App() {
         </div>
       )}
 
-      {/* --- 入力タブ --- */}
       {activeTab === 'assessment' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
           <div style={{ ...cardStyle, backgroundColor: '#FFF3E0', borderColor: '#FFB74D' }}>
@@ -350,41 +377,52 @@ export default function App() {
 
       {/* --- ずかんタブ（子ども向けポップ表示） --- */}
       {activeTab === 'zukan' && (
-        <div style={{ backgroundColor: '#FFF9C4', padding: '25px 15px', borderRadius: '20px', border: '4px dashed #FFD54F', textAlign: 'center', boxShadow: '0 8px 16px rgba(0,0,0,0.1)' }}>
-          <h2 style={{ color: '#F57F17', fontSize: '1.4rem', marginBottom: '25px', backgroundColor: '#fff', display: 'inline-block', padding: '10px 20px', borderRadius: '30px', boxShadow: '0 4px 0 #FFE082' }}>
+        <div style={{ backgroundColor: '#fff', padding: '25px 15px', borderRadius: '24px', border: '4px solid #FFD54F', textAlign: 'center', boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}>
+          <h2 style={{ color: '#F57F17', fontSize: '1.4rem', marginBottom: '20px', backgroundColor: '#FFF9C4', display: 'inline-block', padding: '10px 20px', borderRadius: '30px', boxShadow: '0 4px 0 #FFE082' }}>
             {t.zukanTitle}
           </h2>
 
-          {Object.keys(fieldOptions).every(fieldId => osData[fieldId].tags.length === 0) && (
-            <p style={{ color: '#F57F17', fontWeight: 'bold', fontSize: '1.1rem', marginTop: '20px' }}>{t.zukanEmpty}</p>
-          )}
+          {/* 🦉 ふくろうはかせ（キャラクターエリア） */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '30px' }}>
+            <div style={{ fontSize: '4.5rem', animation: 'float 4s ease-in-out infinite' }}>🦉</div>
+            <div style={{ 
+              backgroundColor: '#FAFAFA', padding: '15px', borderRadius: '16px', border: '2px solid #E0E0E0', 
+              position: 'relative', marginTop: '10px', maxWidth: '80%', color: '#424242', fontWeight: 'bold', lineHeight: '1.5'
+            }}>
+              {/* 吹き出しのしっぽ */}
+              <div style={{ position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)', width: '0', height: '0', borderLeft: '10px solid transparent', borderRight: '10px solid transparent', borderBottom: '10px solid #E0E0E0' }}></div>
+              <div style={{ position: 'absolute', top: '-9px', left: '50%', transform: 'translateX(-50%)', width: '0', height: '0', borderLeft: '8px solid transparent', borderRight: '8px solid transparent', borderBottom: '8px solid #FAFAFA' }}></div>
+              {isZukanEmpty ? t.zukanEmpty : t.zukanGreeting}
+            </div>
+          </div>
 
-          {Object.keys(fieldOptions).map(fieldId => {
+          {/* 🎨 まほうのカード（カテゴリーごとに色分け） */}
+          {!isZukanEmpty && Object.keys(fieldOptions).map(fieldId => {
             const selectedIndices = osData[fieldId].tags;
             if (selectedIndices.length === 0) return null;
+            const theme = categoryColors[fieldId];
 
             return (
-              <div key={fieldId} style={{ marginBottom: '30px' }}>
-                <h3 style={{ color: '#E65100', fontSize: '1.1rem', borderBottom: '3px solid #FFCC80', display: 'inline-block', paddingBottom: '5px', marginBottom: '15px' }}>
+              <div key={fieldId} style={{ marginBottom: '35px' }}>
+                <h3 style={{ color: theme.text, fontSize: '1.1rem', borderBottom: `3px solid ${theme.border}`, display: 'inline-block', paddingBottom: '5px', marginBottom: '15px' }}>
                   {t.zukanCategories[fieldId]}
                 </h3>
                 <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '15px' }}>
                   {selectedIndices.map(index => {
                     const zukanText = t.zukanOptions[fieldId][index];
-                    // 絵文字とテキストを分離して表示
                     const emoji = zukanText.match(/[\p{Emoji}]/gu)?.[0] || '✨';
                     const textOnly = zukanText.replace(emoji, '').trim();
 
                     return (
                       <div key={index} style={{
-                        backgroundColor: '#fff', borderRadius: '16px', padding: '15px 10px',
-                        boxShadow: '0 6px 0 #FFE082', width: '130px',
-                        border: '3px solid #FFECB3', display: 'flex', flexDirection: 'column', alignItems: 'center'
+                        backgroundColor: theme.bg, borderRadius: '16px', padding: '20px 10px',
+                        boxShadow: `0 6px 0 ${theme.shadow}`, width: '130px',
+                        border: `3px solid ${theme.border}`, display: 'flex', flexDirection: 'column', alignItems: 'center'
                       }}>
-                        <div style={{ fontSize: '3.5rem', marginBottom: '10px', filter: 'drop-shadow(0px 4px 2px rgba(0,0,0,0.1))' }}>
+                        <div style={{ fontSize: '3.5rem', marginBottom: '10px', filter: 'drop-shadow(0px 4px 2px rgba(0,0,0,0.15))' }}>
                           {emoji}
                         </div>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#5D4037', lineHeight: '1.4' }}>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: theme.text, lineHeight: '1.4' }}>
                           {textOnly}
                         </div>
                       </div>
@@ -394,10 +432,28 @@ export default function App() {
               </div>
             );
           })}
+
+          {/* ✨ きょうの キラリ（ほめスタンプ宝箱） */}
+          {osData.stamps.length > 0 && (
+            <div style={{ marginTop: '40px', padding: '20px', backgroundColor: '#FFF0F5', borderRadius: '24px', border: '4px dashed #F48FB1' }}>
+              <h3 style={{ color: '#C2185B', marginTop: 0, marginBottom: '15px', fontSize: '1.1rem' }}>{t.zukanSparkle}</h3>
+              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '12px' }}>
+                {osData.stamps.map((stamp) => (
+                  <div key={stamp.id} style={{ 
+                    fontSize: '2.5rem', 
+                    animation: 'sparkleScale 3s infinite',
+                    animationDelay: `${Math.random()}s` // 少しずつタイミングをずらしてキラキラ感を出す
+                  }}>
+                    {stamp.emoji}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {/* --- 提示タブ (パスポート) --- */}
+      {/* --- 提示タブ (パスポート - 既存コード同様) --- */}
       {activeTab === 'passport' && (
         <div style={{ ...cardStyle, padding: simpleMode ? '10px' : '25px', position: 'relative' }}>
           {!simpleMode && (
